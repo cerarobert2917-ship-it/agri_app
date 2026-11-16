@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/config.dart';
 
@@ -18,9 +19,24 @@ class GoogleAuth {
     serverClientId: kIsWeb ? null : AppConfig.googleWebClientId,
   );
 
-  /// Bubuksan ang Google account picker. null = nag-cancel ang user.
+  /// Mga error code kapag isinara o kinansela ng user ang Google popup. Hindi ito totoong error.
+  static const _cancelCodes = {'popup_closed', 'popup_closed_by_user', 'sign_in_canceled', 'canceled'};
+
+  static bool _isCancel(Object e) {
+    if (e is PlatformException && _cancelCodes.contains(e.code)) return true;
+    final t = e.toString();
+    return t.contains('popup_closed') || t.contains('sign_in_canceled');
+  }
+
+  /// Bubuksan ang Google account picker. null = nag-cancel o nag-close ang user (walang ipapakitang error).
   static Future<GoogleTokens?> signIn() async {
-    final account = await _gsi.signIn();
+    GoogleSignInAccount? account;
+    try {
+      account = await _gsi.signIn();
+    } catch (e) {
+      if (_isCancel(e)) return null;
+      rethrow;
+    }
     if (account == null) return null;
     final auth = await account.authentication;
     if (auth.idToken == null && auth.accessToken == null) {
