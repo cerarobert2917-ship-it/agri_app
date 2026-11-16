@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../core/config.dart';
 import '../core/theme.dart';
 import '../services/api_client.dart';
@@ -31,16 +32,43 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<_ChatMessage> _messages = [
     const _ChatMessage(
       isUser: false,
-      text: 'Hi! I am AgriBot. Ask me about prices, stock and stores in Mamburao.',
+      text:
+          'Hi! I am AgriBot. Ask me about prices, stock and stores in Mamburao.',
     ),
   ];
 
   bool _isSending = false;
 
+  // Totoong lokasyon ng user (para sa "malapit na store"). Kung walang pahintulot, gagamitin ang gitna ng Mamburao.
+  double? _lat;
+  double? _lng;
+
+  @override
+  void initState() {
+    super.initState();
+    _locate();
+  }
+
+  Future<void> _locate() async {
+    try {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) return;
+      final pos = await Geolocator.getCurrentPosition()
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      _lat = pos.latitude;
+      _lng = pos.longitude;
+    } catch (_) {}
+  }
+
   static const _suggestions = [
     'Where can I find fertilizer?',
     'Cheapest urea',
-    'Do you have hog feeds?',
+    'What rice seeds are available?',
   ];
 
   @override
@@ -73,8 +101,8 @@ class _ChatScreenState extends State<ChatScreen> {
       final response = await ApiClient.instance.post('/ai/chat', {
         'message': message,
         'history': history,
-        'lat': AppConfig.defaultLat,
-        'lng': AppConfig.defaultLng,
+        'lat': _lat ?? AppConfig.defaultLat,
+        'lng': _lng ?? AppConfig.defaultLng,
       });
 
       if (!mounted) return;
@@ -178,7 +206,8 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           // Parehong logo ng floating AgriBot (may manipis na puting outline para kita sa berde)
-          Image.asset('assets/images/agribot_logo_outline.png', width: 36, height: 36),
+          Image.asset('assets/images/agribot_logo_outline.png',
+              width: 36, height: 36),
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
@@ -353,7 +382,8 @@ class _TypingBubble extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             SizedBox(width: 9),
-            Text('AgriBot is typing...', style: TextStyle(color: AppColors.muted)),
+            Text('AgriBot is typing...',
+                style: TextStyle(color: AppColors.muted)),
           ],
         ),
       ),
