@@ -34,14 +34,14 @@ class OwnerDashboard extends StatelessWidget {
           _stat('Ubos', out, Icons.remove_shopping_cart_outlined, AppColors.error),
         ]),
         const SizedBox(height: 16),
-        ElevatedButton.icon(onPressed: onAdd, icon: const Icon(Icons.add), label: const Text('Magdagdag ng Produkto')),
+        ElevatedButton.icon(onPressed: onAdd, icon: const Icon(Icons.add), label: const Text('Add Product')),
         const SizedBox(height: 20),
         const Text('Mga huling update', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         if (recent.isEmpty)
           const Padding(
             padding: EdgeInsets.all(16),
-            child: Text('Wala pang produkto. Magdagdag ng una mong produkto.', style: TextStyle(color: AppColors.muted)),
+            child: Text('No products yet. Add your first product.', style: TextStyle(color: AppColors.muted)),
           ),
         for (final p in recent.take(5))
           Card(

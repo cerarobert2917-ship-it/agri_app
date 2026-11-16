@@ -368,7 +368,7 @@ class _StoreDetails extends StatelessWidget {
     if (i == null) {
       return const Padding(
           padding: EdgeInsets.all(20),
-          child: Text('Walang available na data para sa tindahang ito.'));
+          child: Text('No data is available for this store yet.'));
     }
     final now = StoreInfo.phNow();
     final st = i.status(now);
